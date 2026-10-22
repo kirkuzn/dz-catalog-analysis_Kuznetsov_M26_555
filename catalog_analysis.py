@@ -1,6 +1,5 @@
 import math
 
-
 # Приведём к стандарту PEP 8
 movies = [
     {
@@ -88,13 +87,15 @@ movies = [
 # Этап №1. Разминка: переменные, числа, math
 # Функция описания среднего рейтинга
 def average_rating(movies):
-    total = sum(f["rating"] for f in movies)
+    total = sum(movie["rating"] for movie in movies)
     return round(total / len(movies), 1)
 
+
 # Функция описания возраста фильма
-def catalog_age_stats(movies, current_year=2026):
-    ages = [current_year - f["year"] for f in movies]
+def catalog_age_stats(movies, current_year = 2026):
+    ages = [current_year - movie["year"] for movie in movies]
     return (min(ages), max(ages), math.ceil(sum(ages) / len(ages)))
+
 
 # Функция времени фильма
 def duration_in_hours(minutes):
@@ -102,6 +103,7 @@ def duration_in_hours(minutes):
 
 #print(f"Средний рейтинг каталога: {average_rating(movies)}")
 #print(f"Средний возраст фильмов: {catalog_age_stats(movies)[2]}")
+
 
 # Этап №2. Условия и match
 # Функция описания рейтинга фильма
@@ -113,25 +115,27 @@ def rating_tier(rating):
     else:
         return "хорошо" if rating >= 7  else "средне"
 
+
 # Функция описания года фильма
 def decade_label(year):
     match year:
         case _ if year > 2020:
             return "новые"
-        case _ if year >=2015:
+        case _ if year >= 2015:
             return "недавние"
         case _:
             return "старые"
 
+
 # Этап №3. Циклы
 # Функция вывода не комедий
 def is_comedy(movies):
-    for f in movies:
-        if "comedy"  in f["genres"]:
+    for movie in movies:
+        if "comedy"  in movie["genres"]:
             continue  
-        print(f'Не комедии {f["title"]}')
-
+        print(f'Не комедии {movie["title"]}')
 is_comedy(movies)
+
 
 # Функция поиска шедевра
 shedevr_count = 0
@@ -139,14 +143,96 @@ while shedevr_count < len(movies):
     if movies[shedevr_count]["rating"] > 9.0:
         print(f'Найден шедевр:  {movies[shedevr_count]["title"]}')
         break
-    shedevr_count = shedevr_count +1
+    shedevr_count = shedevr_count + 1
 else:
     print("Шедевров не найдено")
+
 
 # Функция количества фильмов длиннее 120 минут
 def count_long_movies(movies, threshold = 120):
     movie_count = 0
-    for f in movies:
-        if f["duration_min"] > threshold:
+    for movie in movies:
+        if movie["duration_min"] > threshold:
             movie_count = movie_count + 1
     return movie_count
+
+
+# Этап №4. Строки
+# Функция строки к формату Title Case
+def normalize_title(title):
+    words = title.split()
+    result =[]
+    for word in words:
+        if word:
+            new_word = word[0].upper() + word[1:]
+            result.append(new_word)
+    return " ".join(result)
+
+
+# Функция нормализованного названия в «слаг» виде
+def make_slug(title):
+    slug = ""
+    for char in title.lower():
+        if char == " ":
+            slug = slug + "-"
+        else:
+            slug = slug + char
+    return slug
+
+
+# Функция возвращающая единую строку с описанием фильма
+def format_report_line(movie):
+    title = normalize_title(movie["title"])
+    time = duration_in_hours(movie["duration_min"])
+    genres = ", ".join(sorted(movie["genres"]))
+    return(
+        f'"{title}" ({movie["year"]}) - '
+        f'{movie["rating"]}, {time}, жанры: {genres}'
+    )
+
+
+# Этап №5. Списки
+# Функция возвращающую список названий фильмов, по убыванию рейтинга
+def titles_sorted_by_rating(movies):
+    sorted_movies = sorted(
+        movies, key=lambda movie: movie["rating"], reverse=True
+    )
+    return [movie["title"] for movie in sorted_movies]
+
+
+# Функция возвращающую список  из кортежей по рейтингу
+def top_n_by_rating(movies, n=3):
+    sorted_top = sorted(
+        [[movie["rating"], movie["title"]] for movie in movies], reverse=True
+    )
+    return [(title, rating) for rating, title in sorted_top[:n]]
+
+
+# Этап №6. Словари
+# Функция возвращающая словарь количества жанров
+def count_by_genre(movies):
+    genre_count = {}
+    for movie in movies:
+        for genre in movie["genres"]:
+            genre_count = genre_count.get(genre, 0) + 1
+    return genre_count
+
+
+# Функция возвращающая словарь актеров
+def actor_filmography(movies):
+    filmography = {}
+    for movie in movies:
+        for actor in movie["actors"]:
+            filmography[actor] = []
+        filmography[actor].append(movie["title"])
+    return filmography
+
+
+# Функция фильмов с рейтингом выше среднего 
+def high_rating(movies):
+    average = average_rating(movies)
+    return {
+        movie["title"]: movie["rating"]
+        for movie in movies
+        if movie["rating"] > average
+    }
