@@ -92,28 +92,25 @@ def average_rating(movies):
 
 
 # Функция описания возраста фильма
-def catalog_age_stats(movies, current_year = 2026):
+def catalog_age_stats(movies, current_year=2026):
     ages = [current_year - movie["year"] for movie in movies]
-    return (min(ages), max(ages), math.ceil(sum(ages) / len(ages)))
+    return (max(ages), min(ages), math.ceil(sum(ages) / len(ages)))
 
 
 # Функция времени фильма
 def duration_in_hours(minutes):
     return f"{minutes // 60}ч {minutes % 60}м"
 
-#print(f"Средний рейтинг каталога: {average_rating(movies)}")
-#print(f"Средний возраст фильмов: {catalog_age_stats(movies)[2]}")
-
 
 # Этап №2. Условия и match
 # Функция описания рейтинга фильма
 def rating_tier(rating):
-    if rating >= 9:
+    if rating >= 9.0:
         return "шедевр"
-    elif rating < 5:
+    elif rating < 5.0:
         return "слабо"
     else:
-        return "хорошо" if rating >= 7  else "средне"
+        return "хорошо" if rating >= 7.0  else "средне"
 
 
 # Функция описания года фильма
@@ -121,7 +118,7 @@ def decade_label(year):
     match year:
         case _ if year > 2020:
             return "новые"
-        case _ if year >= 2015:
+        case _ if 2015 <= year <= 2020:
             return "недавние"
         case _:
             return "старые"
@@ -129,23 +126,22 @@ def decade_label(year):
 
 # Этап №3. Циклы
 # Функция вывода не комедий
-def is_comedy(movies):
-    for movie in movies:
-        if "comedy"  in movie["genres"]:
-            continue  
-        print(f'Не комедии {movie["title"]}')
-is_comedy(movies)
+for movie in movies:
+    if "comedy" in movie["genres"]:
+        continue 
+    print(f'Не относится к жанру комедия: {movie["title"]}')
 
 
 # Функция поиска шедевра
-shedevr_count = 0
-while shedevr_count < len(movies):
-    if movies[shedevr_count]["rating"] > 9.0:
-        print(f'Найден шедевр:  {movies[shedevr_count]["title"]}')
-        break
-    shedevr_count = shedevr_count + 1
-else:
-    print("Шедевров не найдено")
+def shedevr(movies):
+    shedevr_count = 0
+    while shedevr_count < len(movies):
+        if movies[shedevr_count]["rating"] > 9.0:
+            print(f'Найден шедевр:  {movies[shedevr_count]["title"]}')
+            break
+        shedevr_count = shedevr_count + 1
+    else:
+        print("Шедевров не найдено")
 
 
 # Функция количества фильмов длиннее 120 минут
@@ -171,13 +167,7 @@ def normalize_title(title):
 
 # Функция нормализованного названия в «слаг» виде
 def make_slug(title):
-    slug = ""
-    for char in title.lower():
-        if char == " ":
-            slug = slug + "-"
-        else:
-            slug = slug + char
-    return slug
+    return title.lower().replace(" ", "-")
 
 
 # Функция возвращающая единую строку с описанием фильма
@@ -186,8 +176,8 @@ def format_report_line(movie):
     time = duration_in_hours(movie["duration_min"])
     genres = ", ".join(sorted(movie["genres"]))
     return(
-        f'"{title}" ({movie["year"]}) - '
-        f'{movie["rating"]}, {time}, жанры: {genres}'
+        f'"{title}" ({movie["year"]}) — '
+        f'{movie["rating"]}/10, {time}, жанры: {genres}'
     )
 
 
@@ -202,10 +192,10 @@ def titles_sorted_by_rating(movies):
 
 # Функция возвращающую список  из кортежей по рейтингу
 def top_n_by_rating(movies, n=3):
-    sorted_top = sorted(
-        [[movie["rating"], movie["title"]] for movie in movies], reverse=True
+    sorted_movies = sorted(
+        movies, key=lambda movie: movie["rating"], reverse=True
     )
-    return [(title, rating) for rating, title in sorted_top[:n]]
+    return [(movie["title"], movie["rating"]) for movie in sorted_movies[:n]]
 
 
 # Этап №6. Словари
@@ -214,17 +204,18 @@ def count_by_genre(movies):
     genre_count = {}
     for movie in movies:
         for genre in movie["genres"]:
-            genre_count = genre_count.get(genre, 0) + 1
+            genre_count[genre] = genre_count.get(genre, 0) + 1
     return genre_count
 
 
-# Функция возвращающая словарь актеров
+# Функция возвращающая словарь актёров
 def actor_filmography(movies):
     filmography = {}
     for movie in movies:
         for actor in movie["actors"]:
-            filmography[actor] = []
-        filmography[actor].append(movie["title"])
+            if actor not in filmography:
+                filmography[actor] = []
+            filmography[actor].append(movie["title"])
     return filmography
 
 
@@ -236,3 +227,54 @@ def high_rating(movies):
         for movie in movies
         if movie["rating"] > average
     }
+
+
+# Этап №7. Множества
+# Функция, возвращающую множество всех уникальных жанров
+def all_genres(movies):
+    genres_set = set()
+    for movie in movies:
+        genres_set.update(movie["genres"])
+    return genres_set
+
+
+# Функция , возвращающую множество актёров, снимавшихся в обоих фильмах
+def common_actors(movie1, movie2):
+    return set(movie1["actors"]) & set(movie2["actors"])
+
+
+# Функцию которая возвращает жанры
+def genres_only_in_one(movies_a, movies_b):
+    return all_genres(movies_a) - all_genres(movies_b)
+
+
+# Этап №8. Итераторы и генераторы
+# Функция генератор
+def iter_high_rated(movies, min_rating=8.0):
+    for movie in movies:
+        if movie["rating"] >= min_rating:
+            yield movie
+total_duration = sum(movie["duration_min"] for movie in movies if movie["rating"] > 7.0)
+
+
+# Этап №9. Итоговый отчёт
+def build_report(movies):
+    print()
+    print("Отчёт по каталогу")
+    print(f"Средний рейтинг: {average_rating(movies)}")
+    print(f"Средний возраст фильмов: {catalog_age_stats(movies)[2]} лет\n")    
+    print("Топ-3 фильма:")
+    top3 = top_n_by_rating(movies, n=3)
+    for title, rating in top3:
+        movie = next(movie for movie in movies if movie["title"] == title)
+        print(f"  {format_report_line(movie)}")
+    print()
+    print("Фильмов по жанрам:")
+    genre_counts = count_by_genre(movies)
+    for genre, count in genre_counts.items():
+        print(f"  {genre} — {count}")
+    print()  
+    genres_str = ", ".join(all_genres(movies))
+    print(f"Все жанры каталога: {genres_str}")
+if __name__ == "__main__":
+    build_report(movies)
