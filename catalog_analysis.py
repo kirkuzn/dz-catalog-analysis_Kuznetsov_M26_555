@@ -1,3 +1,8 @@
+"""
+Проект: Аналитика каталога стримингового сервиса.
+Выполнил: Кузнецов Кирилл
+"""
+
 import math
 
 # Приведём к стандарту PEP 8
@@ -126,10 +131,13 @@ def decade_label(year):
 
 # Этап №3. Циклы
 # Функция вывода не комедий
-for movie in movies:
-    if "comedy" in movie["genres"]:
-        continue 
-    print(f'Не относится к жанру комедия: {movie["title"]}')
+def is_comedy(movies):
+    print("Не относится к жанру комедия:")
+    for movie in movies:
+        if "comedy" in movie["genres"]:
+            continue
+        print(f"  - {movie['title']}")
+is_comedy(movies)
 
 
 # Функция поиска шедевра
