@@ -279,10 +279,10 @@ def build_report(movies):
     print()
     print("Фильмов по жанрам:")
     genre_counts = count_by_genre(movies)
-    for genre, count in genre_counts.items():
-        print(f"  {genre} — {count}")
+    for genre in sorted(genre_counts, key=genre_counts.get, reverse=True):
+        print(f"  {genre} — {genre_counts[genre]}")
     print()  
-    genres_str = ", ".join(all_genres(movies))
+    genres_str = ", ".join(sorted(all_genres(movies)))
     print(f"Все жанры каталога: {genres_str}")
 if __name__ == "__main__":
     build_report(movies)
